@@ -1,0 +1,11 @@
+const assert=require('node:assert/strict');require('../web/config.js');require('../web/systems.js');
+const {GameState,DragSystem,GiftEventAdapter,RecipeSystem}=global.ChefSystems;
+const s=new GameState(),d=new DragSystem(s);d.down(925,300);d.move(500,500);d.up();let b=s.objects[0];assert.equal(b.kind,'bowl');
+for(const kind of ['sauce','noodles','noodles','sauce','sauce']){d.down(kind==='sauce'?550:240,300);d.move(b.x,b.y);d.up();}assert.equal(b.noodles,2);assert.equal(b.sauce,3);assert(RecipeSystem.ready(b));
+d.down(240,300);d.move(750,560);d.up();let ingredient=s.objects.at(-1);assert.equal(ingredient.x,750);d.down(750,560);d.move(b.x,b.y);d.up();assert.equal(b.noodles,3);
+d.down(925,300);d.move(800,500);d.up();let b2=s.objects.at(-1);d.down(800,500);d.move(b.x,b.y);d.up();assert.equal(b2.x,800);assert.equal(b2.noodles,0);
+d.down(925,300);d.move(500,500);d.up();assert.equal(s.objects.length,2);
+d.down(b.x,b.y);d.move(650,600);d.up();assert.equal(b.noodles,3);assert.equal(b.sauce,3);
+d.down(240,300);d.move(-500,1000);d.up();ingredient=s.objects.at(-1);assert.equal(ingredient.x,75);assert.equal(ingredient.y,665);
+d.down(240,300);d.up(true);assert.equal(s.objects.length,3);
+const a=new GiftEventAdapter(s),event={type:'gift',uid:42,name:'观众',giftId:1,giftName:'小心心',quantity:3,transactionId:'one'};a.receive(event);a.receive(event);assert.equal(s.customers.length,1);a.receive({...event,transactionId:'two'});assert.equal(s.customers.length,2);a.receive({...event,giftName:'其他',transactionId:'three'});assert.equal(s.customers.length,2);global.ChefConfig.quantityMode='unit';a.receive({...event,transactionId:'four'});assert.equal(s.customers.length,5);s.selected=b.id;s.deliver();assert.equal(s.completed,1);assert.equal(s.customers.length,4);assert(!s.objects.includes(b));console.log('PASS: drag, re-pick, recipe, counts, movement, collision, clamp, cancel, gift dedup, quantity, FIFO');

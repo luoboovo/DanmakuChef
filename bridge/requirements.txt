@@ -1,0 +1,2 @@
+./blivedm-1.1.7-py3-none-any.whl
+aiohttp>=3.9,<4
